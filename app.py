@@ -43,12 +43,12 @@ def choose_keys():
     d = modinv(e, phi_n)
     return e, d, n
 
-# RSA 키를 세션 상태에 저장해서 고정
+# RSA 키 유지
 if "rsa_keys" not in st.session_state:
     st.session_state.rsa_keys = choose_keys()
 e, d, n = st.session_state.rsa_keys
 
-# 출석 상태도 세션에 저장
+# 출석 상태 유지
 if "present_list" not in st.session_state:
     st.session_state.present_list = []
 if "encrypted_data" not in st.session_state:
@@ -57,10 +57,9 @@ if "encrypted_data" not in st.session_state:
 # 학급 명단
 class_list = [str(i) for i in range(30901, 30921)]
 
-# UI 시작
+# UI
 st.title("📚 RSA 기반 QR 출석 시스템")
 st.write("### 👩‍🎓 학생 출석 입력")
-
 student_id = st.text_input("학번 입력 (30901~30920):")
 
 if st.button("출석하기"):
@@ -80,22 +79,20 @@ if st.button("출석하기"):
         buf = BytesIO()
         qr.save(buf, format="PNG")
         byte_im = buf.getvalue()
-        b64 = base64.b64encode(byte_im).decode()
         st.success(f"✅ 출석 완료! 도착 시간: {now}")
         st.image(byte_im, caption=f"학번 {student_id} QR코드", use_column_width=False)
 
-# 출석 명단
+# 명단 출력 버튼들
 if st.button("출석 명단 보기"):
     st.subheader("📋 출석 명단")
-    for i in range(len(st.session_state.present_list)):
+    for i, cipher in enumerate(st.session_state.encrypted_data):
         try:
-            decrypted = decrypt(st.session_state.encrypted_data[i], d, n)
+            decrypted = decrypt(cipher, d, n)
             sid, t = decrypted.split("_")
             st.write(f"{i+1}. 학번: {sid} / 도착 시간: {t}")
         except:
             st.write("⚠️ 복호화 실패")
 
-# 결석자 명단
 if st.button("결석자 확인"):
     st.subheader("🚫 결석자 명단")
     absent_list = sorted(set(class_list) - set(st.session_state.present_list))
