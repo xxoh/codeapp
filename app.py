@@ -4,8 +4,6 @@ import qrcode
 from io import BytesIO
 import base64
 
-pip install qrcode[pil]
-
 # RSA 관련 함수 정의 (이전 단계 참고)
 from math import gcd
 import random
